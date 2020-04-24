@@ -29,7 +29,7 @@ public:
 	void save(std::string& fileName);
 	void close(std::string& fileName);
 	static void help();
-	void exit(std::string& fileName);
+	void exit(std::string& fileName, bool fileIsOpen);
 
 	void addEvent();
 	void freeSeats();

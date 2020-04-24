@@ -370,6 +370,153 @@ void TicketSystem::open(std::string& fileName)
 			}
 		}
 	}
+	inStream.close();
+}
+
+void TicketSystem::save(std::string& fileName)
+{
+	std::ofstream outStream;
+	outStream.open(fileName, std::ofstream::trunc);
+	outStream << m_hallCount << '\n';
+	for (size_t i = 0; i < m_hallCount; i++)
+	{
+		outStream << m_halls[i].getNumber() << '\n';
+		outStream << m_halls[i].getRowCount() << '\n';
+		outStream << m_halls[i].getSeatCount() << '\n';
+
+		size_t eventcount = m_halls[i].getEventCount();
+		outStream << eventcount << '\n';
+		for (size_t j = 0; j < eventcount; j++)
+		{
+			outStream << m_halls[i].getEvent(j).getDate();
+			outStream << m_halls[i].getEvent(j).getName() << '\n';
+			size_t bookedCount = m_halls[i].getEvent(j).getBookedCount();
+			outStream << bookedCount << '\n';
+			for (size_t k = 0; k < bookedCount; k++)
+			{
+				outStream << m_halls[i].getEvent(j).getBooked(k).getCode() << '\n';
+				outStream << m_halls[i].getEvent(j).getBooked(k).getNote() << '\n';
+			}
+			size_t soldCount = m_halls[i].getEvent(j).getSoldCount();
+			outStream << soldCount << '\n';
+			for (size_t k = 0; k < soldCount; k++)
+			{
+				outStream << m_halls[i].getEvent(j).getSold(k).getCode() << '\n';
+			}
+		}
+	}
+	outStream.close();
+}
+
+void TicketSystem::close(std::string& fileName)
+{
+	std::cout << "Close without saving?" << std::endl;
+	size_t option = 0;
+	do
+	{
+		std::cout << "(1) Save." << std::endl;
+		std::cout << "(2) Save As." << std::endl;
+		std::cout << "(3) Cancel." << std::endl;
+		std::cout << "(4) Close." << std::endl;
+		std::cin >> option;
+
+	} while (option < 1 || option > 4);
+	size_t dotPos;
+	switch (option)
+	{
+	case 1:
+		this->save(fileName);
+		break;
+	case 2:
+		std::cout << "Enter file name." << std::endl;
+		std::cin >> fileName;
+		dotPos = fileName.find('.');
+		if (dotPos == std::string::npos)
+		{
+			fileName += ".txt";
+		}
+		else
+		{
+			if (fileName.find('txt', dotPos + 1) != dotPos + 1)
+			{
+				fileName += ".txt";
+			}
+		}
+		this->save(fileName);
+		break;
+	case 3:
+		break;
+	case 4:
+		this->~TicketSystem();
+		break;
+	}
+}
+
+void TicketSystem::help()
+{
+	std::cout << "Commands: " << std::endl;
+	std::cout << "Open - Open new database." << std::endl;
+	std::cout << "Close - Close currently open database." << std::endl;
+	std::cout << "Save - Save the database in the same file." << std::endl;
+	std::cout << "Save as - Save database in a different file." << std::endl;
+	std::cout << "Help - List of all commands." << std::endl;
+	std::cout << "Exit - Exit the aplication." << std::endl;
+	std::cout << "Add event <date> <hall> <name> - Create a new event." << std::endl;
+	std::cout << "Free seats <date> <name> - Show free seats." << std::endl;
+	std::cout << "Book <date> <name> <row> <seat> - Book new ticket." << std::endl;
+	std::cout << "Unbook <date> <name> <row> <seat> - Unbook an already booked ticket." << std::endl;
+	std::cout << "Buy <date> <name> <row> <seat> - Buy a ticket and show it's code." << std::endl;
+	std::cout << "Bookings <date> <name> - Show all bookings. Can be restricted by date and/or name." << std::endl;
+	std::cout << "Check <code> - Validate a ticket with it's code." << std::endl;
+	std::cout << "Report <from> <to> <hall> - Show all sold tickets in this time interval. Hall can be specified." << std::endl;
+}
+
+void TicketSystem::exit(std::string& fileName, bool fileIsOpen)
+{
+	if (fileIsOpen)
+	{
+		std::cout << "Exit without saving?" << std::endl;
+		size_t option = 0;
+		do
+		{
+			std::cout << "(1) Save." << std::endl;
+			std::cout << "(2) Save As." << std::endl;
+			std::cout << "(3) Cancel." << std::endl;
+			std::cout << "(4) Exit." << std::endl;
+			std::cin >> option;
+
+		} while (option < 1 || option > 4);
+		size_t dotPos;
+		switch (option)
+		{
+		case 1:
+			this->save(fileName);
+			break;
+		case 2:
+			std::cout << "Enter file name." << std::endl;
+			std::cin >> fileName;
+			dotPos = fileName.find('.');
+			if (dotPos == std::string::npos)
+			{
+				fileName += ".txt";
+			}
+			else
+			{
+				if (fileName.find('txt', dotPos + 1) != dotPos + 1)
+				{
+					fileName += ".txt";
+				}
+			}
+			this->save(fileName);
+			break;
+		case 3:
+			return;
+		case 4:
+			break;
+		}
+	}
+
+	std::exit(0);
 }
 
 void TicketSystem::addEvent()
