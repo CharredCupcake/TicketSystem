@@ -6,7 +6,6 @@ int main()
 	std::string fileName;
 	TicketSystem sys;
 	size_t option, dotPos;
-	std::string fileName, otherFileName;
 	do
 	{
 		do
@@ -66,21 +65,7 @@ int main()
 				sys.save(fileName);
 				break;
 			case 5:
-				std::cout << "Enter file name." << std::endl;
-				std::cin >> otherFileName;
-				dotPos = otherFileName.find('.');
-				if (dotPos == std::string::npos)
-				{
-					otherFileName += ".txt";
-				}
-				else
-				{
-					if (otherFileName.find('txt', dotPos + 1) != dotPos + 1)
-					{
-						otherFileName += ".txt";
-					}
-				}
-				sys.save(otherFileName);
+				sys.saveAs();
 				break;
 			case 6:
 				sys.addEvent();

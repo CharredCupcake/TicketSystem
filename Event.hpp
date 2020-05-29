@@ -34,5 +34,7 @@ public:
 	void pushSold(const Ticket& ticket);
 	void removeBooked(size_t bookedPos);
 
+	friend std::ostream& operator<<(std::ostream& out, const Event& event);
+
 };
 

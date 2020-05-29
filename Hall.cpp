@@ -94,3 +94,19 @@ size_t Hall::findEvent(const Date& date, std::string name)
 		}
 	return 0xffffffff;
 }
+
+std::ostream& operator<<(std::ostream& out, const Hall& hall)
+{
+	out << hall.m_number << '\n';
+	out << hall.m_rowCount << '\n';
+	out << hall.m_seatCount << '\n';
+
+	size_t eventcount = hall.m_eventCount;
+	out << eventcount << '\n';
+
+	for (size_t i = 0; i < eventcount; i++)
+	{
+		out << hall.m_events[i];
+	}
+	return out;
+}

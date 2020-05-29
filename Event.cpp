@@ -167,3 +167,22 @@ void Event::removeBooked(size_t bookedPos)
 	delete[] m_booked;
 	m_booked = newBooked;
 }
+
+std::ostream& operator<<(std::ostream& out, const Event& event)
+{
+	out << event.m_date;
+	out << event.m_name << std::endl;
+	size_t bookedCount = event.m_bookedCount;
+	out << bookedCount << std::endl;
+	for (size_t i = 0; i < bookedCount; i++)
+	{
+		out << event.m_booked[i];
+	}
+	size_t soldCount = event.m_soldCount;
+	out << soldCount << std::endl;
+	for (size_t i = 0; i < soldCount; i++)
+	{
+		out << event.m_sold[i];
+	}
+	return out;
+}

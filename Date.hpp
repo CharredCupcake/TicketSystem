@@ -1,13 +1,12 @@
 #pragma once
 #include <iostream>
+#include "Validations.hpp"
 
 static const size_t DAYS_IN_MONTH[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 class Date
 {
 private:
-
-	static const size_t EARLIEST_YEAR = 2020;
 
 	size_t m_year;
 	size_t m_month;
@@ -27,7 +26,8 @@ public:
 	bool operator==(const Date& other);
 	bool operator>=(const Date& other);
 	bool operator<=(const Date& other);
-
+	
+	friend std::istream& operator>>(std::istream& in, Date& date);
 	friend std::ostream& operator<<(std::ostream& out, const Date& date);
 
 };

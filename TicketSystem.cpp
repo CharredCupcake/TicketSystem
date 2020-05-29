@@ -1,130 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "TicketSystem.hpp"
 
-Date TicketSystem::cinDate()
-{
-	std::string dateStr;
-	std::string yearStr, monthStr, dayStr;
-	do
-	{
-		std::cout << "Enter date in format Year.Month.Day " << std::endl;
-		std::cin >> dateStr;
-		while (!ValidateDateFormat(dateStr))
-		{
-			std::cout << "Invalid format. " << std::endl;
-			std::cout << "Enter date in format Year.Month.Day " << std::endl;
-			std::cin >> dateStr;
-		}
-		size_t firstDot = dateStr.find('.');
-		size_t secondDot = dateStr.rfind('.');
-		yearStr = dateStr.substr(0, firstDot);
-		monthStr = dateStr.substr(firstDot + 1, secondDot - firstDot - 1);
-		dayStr = dateStr.substr(secondDot + 1);
-
-	} while (!ValidateDate(yearStr, monthStr, dayStr));
-	size_t year, month, day;
-	year = std::stoul(yearStr);
-	month = std::stoul(monthStr);
-	day = std::stoul(dayStr);
-	return Date(year, month, day);
-}
-
-bool TicketSystem::ValidateDateFormat(const std::string& dateStr)
-{
-	size_t firstDot = dateStr.find('.');
-	size_t secondDot = dateStr.rfind('.');
-	if (firstDot == std::string::npos)
-	{
-		return false;
-	}
-	if (secondDot == firstDot + 1)
-	{
-		return false;
-	}
-	if (firstDot == 0)
-	{
-		return false;
-	}
-	if (secondDot == dateStr.length() - 1)
-	{
-		return false;
-	}
-	if (firstDot == secondDot)
-	{
-		return false;
-	}
-	if (dateStr.find('.', firstDot + 1) != secondDot)
-	{
-		return false;
-	}
-	return true;
-}
-
-bool TicketSystem::ValidateDate(const std::string& yearStr, const std::string& monthStr, const std::string& dayStr)
-{
-	if (yearStr.find_first_not_of("0123456789") != std::string::npos)
-	{
-		std::cout << "Invalid Year. " << std::endl;
-		return false;
-	}
-	if (monthStr.find_first_not_of("0123456789") != std::string::npos)
-	{
-		std::cout << "Invalid Month. " << std::endl;
-		return false;
-	}
-	if (dayStr.find_first_not_of("0123456789") != std::string::npos)
-	{
-		std::cout << "Invalid day. " << std::endl;
-		return false;
-	}
-	size_t year = std::stoul(yearStr), month = std::stoul(monthStr), day = std::stoul(dayStr);
-	if (month < 1 || month > 12)
-	{
-		std::cout << "Invalid Month. " << std::endl;
-		return false;
-	}
-	if (Date(year, month, day).isLeapYear())
-	{
-		if (month == 2)
-		{
-			if (DAYS_IN_MONTH[1] + 1 < day)
-			{
-				std::cout << "Invalid Day. " << std::endl;
-				return false;
-			}
-			else
-			{
-				return true;
-			}
-		}
-		else
-		{
-			if (DAYS_IN_MONTH[month - 1] < day)
-			{
-				std::cout << "Invalid Day. " << std::endl;
-				return false;
-			}
-			else
-			{
-				return true;
-			}
-		}
-	}
-	else
-	{
-		if (DAYS_IN_MONTH[month - 1] < day)
-		{
-			std::cout << "Invalid Day. " << std::endl;
-			return false;
-		}
-		else
-		{
-			return true;
-		}
-	}
-	return true;
-}
-
 bool TicketSystem::isHallFree(const Date& date, size_t hallNumber)
 {
 	for (size_t i = 0; i < m_hallCount; i++)
@@ -250,6 +126,15 @@ bool TicketSystem::checkCodeData(std::string& code)
 	return seenHall;
 }
 
+void TicketSystem::getLine(std::string& str, std::ifstream& in)
+{
+	char tempChar = 0;
+	while ((tempChar = in.get()) != '\n')
+	{
+		str.push_back(tempChar);
+	}
+}
+
 TicketSystem::TicketSystem() :
 	m_halls(nullptr),
 	m_hallCount(0)
@@ -266,106 +151,75 @@ void TicketSystem::open(std::string& fileName)
 	std::cout << "Enter file name." << std::endl;
 	std::cin >> fileName;
 	std::cin.ignore();
-	size_t dotPos = fileName.find('.');
-	if (dotPos == std::string::npos)
-	{
-		fileName += ".txt";
-	}
-	else
-	{
-		if (fileName.find('txt', dotPos + 1) != dotPos + 1)
-		{
-			fileName += ".txt";
-		}
-	}
+	Validations::ValidateFileName(fileName);
+
 	std::string hallCountStr;
 	std::ifstream inStream;
-	inStream.open(fileName);
-	char tempChar = '\0';
-	while ((tempChar = inStream.get()) != '\n')
+	do
 	{
-		hallCountStr.push_back(tempChar);
-	}
+		inStream.open(fileName);
+	} while (!inStream.is_open());
+
+	getLine(hallCountStr, inStream);
 	m_hallCount = std::stoul(hallCountStr);
 	m_halls = new Hall[m_hallCount];
+
 	for (size_t i = 0; i < m_hallCount; i++)
 	{
 		std::string numberStr;
-		while ((tempChar = inStream.get()) != '\n')
-		{
-			numberStr.push_back(tempChar);
-		}
+		getLine(numberStr, inStream);
 		m_halls[i].setNumber(std::stoul(numberStr));
+
 		std::string rowCountStr;
-		while ((tempChar = inStream.get()) != '\n')
-		{
-			rowCountStr.push_back(tempChar);
-		}
+		getLine(rowCountStr, inStream);
 		m_halls[i].setRowCount(std::stoul(rowCountStr));
+
 		std::string seatCountStr;
-		while ((tempChar = inStream.get()) != '\n')
-		{
-			seatCountStr.push_back(tempChar);
-		}
+		getLine(seatCountStr, inStream);
 		m_halls[i].setSeatCount(std::stoul(seatCountStr));
+
 		std::string eventCountStr;
-		while ((tempChar = inStream.get()) != '\n')
-		{
-			eventCountStr.push_back(tempChar);
-		}
+		getLine(eventCountStr, inStream);
 		size_t eventCount = std::stoul(eventCountStr);
 		m_halls[i].initEvents(eventCount);
+
 		for (size_t j = 0; j < eventCount; j++)
 		{
 			std::string dateStr;
-			while ((tempChar = inStream.get()) != '\n')
-			{
-				dateStr.push_back(tempChar);
-			}
+			getLine(dateStr, inStream);
 			size_t firstDot = dateStr.find('.'), secondDot = dateStr.rfind('.');
 			Date date(std::stoul(dateStr.substr(0, firstDot)), std::stoul(dateStr.substr(firstDot + 1, secondDot - firstDot - 1)), std::stoul(dateStr.substr(secondDot + 1)));
 			m_halls[i].getEvent(j).setDate(date);
+
 			std::string nameStr;
-			while ((tempChar = inStream.get()) != '\n')
-			{
-				nameStr.push_back(tempChar);
-			}
+			getLine(nameStr, inStream);
 			m_halls[i].getEvent(j).setName(nameStr);
+
 			std::string bookedCountStr;
-			while ((tempChar = inStream.get()) != '\n')
-			{
-				bookedCountStr.push_back(tempChar);
-			}
+			getLine(bookedCountStr, inStream);
 			size_t bookedCount = std::stoul(bookedCountStr);
 			m_halls[i].getEvent(j).initBooked(bookedCount);
+
 			for (size_t k = 0; k < bookedCount; k++)
 			{
-				std::string codeStr, noteStr;
-				while ((tempChar = inStream.get()) != '\n')
-				{
-					codeStr.push_back(tempChar);
-				}
+				std::string codeStr;
+				getLine(codeStr, inStream);
 				m_halls[i].getEvent(j).getBooked(k).setCode(codeStr);
-				while ((tempChar = inStream.get()) != '\n')
-				{
-					noteStr.push_back(tempChar);
-				}
+
+				std::string noteStr;
+				getLine(noteStr, inStream);
 				m_halls[i].getEvent(j).getBooked(k).setNote(noteStr);
 			}
+
 			std::string soldCountStr;
-			while ((tempChar = inStream.get()) != '\n')
-			{
-				soldCountStr.push_back(tempChar);
-			}
+			getLine(soldCountStr, inStream);
 			size_t soldCount = std::stoul(soldCountStr);
 			m_halls[i].getEvent(j).initSold(soldCount);
+
 			for (size_t k = 0; k < soldCount; k++)
 			{
 				std::string codeStr;
-				while ((tempChar = inStream.get()) != '\n')
-				{
-					codeStr.push_back(tempChar);
-				}
+				getLine(codeStr, inStream);
 				m_halls[i].getEvent(j).getSold(k).setCode(codeStr);
 			}
 		}
@@ -376,34 +230,15 @@ void TicketSystem::open(std::string& fileName)
 void TicketSystem::save(std::string& fileName)
 {
 	std::ofstream outStream;
-	outStream.open(fileName, std::ofstream::trunc);
+	do
+	{
+		outStream.open(fileName, std::ofstream::trunc);
+	} while (!outStream.is_open());
+
 	outStream << m_hallCount << '\n';
 	for (size_t i = 0; i < m_hallCount; i++)
 	{
-		outStream << m_halls[i].getNumber() << '\n';
-		outStream << m_halls[i].getRowCount() << '\n';
-		outStream << m_halls[i].getSeatCount() << '\n';
-
-		size_t eventcount = m_halls[i].getEventCount();
-		outStream << eventcount << '\n';
-		for (size_t j = 0; j < eventcount; j++)
-		{
-			outStream << m_halls[i].getEvent(j).getDate();
-			outStream << m_halls[i].getEvent(j).getName() << '\n';
-			size_t bookedCount = m_halls[i].getEvent(j).getBookedCount();
-			outStream << bookedCount << '\n';
-			for (size_t k = 0; k < bookedCount; k++)
-			{
-				outStream << m_halls[i].getEvent(j).getBooked(k).getCode() << '\n';
-				outStream << m_halls[i].getEvent(j).getBooked(k).getNote() << '\n';
-			}
-			size_t soldCount = m_halls[i].getEvent(j).getSoldCount();
-			outStream << soldCount << '\n';
-			for (size_t k = 0; k < soldCount; k++)
-			{
-				outStream << m_halls[i].getEvent(j).getSold(k).getCode() << '\n';
-			}
-		}
+		outStream << m_halls[i];
 	}
 	outStream.close();
 }
@@ -428,21 +263,7 @@ void TicketSystem::close(std::string& fileName)
 		this->save(fileName);
 		break;
 	case 2:
-		std::cout << "Enter file name." << std::endl;
-		std::cin >> fileName;
-		dotPos = fileName.find('.');
-		if (dotPos == std::string::npos)
-		{
-			fileName += ".txt";
-		}
-		else
-		{
-			if (fileName.find('txt', dotPos + 1) != dotPos + 1)
-			{
-				fileName += ".txt";
-			}
-		}
-		this->save(fileName);
+		this->saveAs();
 		break;
 	case 3:
 		break;
@@ -493,21 +314,7 @@ void TicketSystem::exit(std::string& fileName, bool fileIsOpen)
 			this->save(fileName);
 			break;
 		case 2:
-			std::cout << "Enter file name." << std::endl;
-			std::cin >> fileName;
-			dotPos = fileName.find('.');
-			if (dotPos == std::string::npos)
-			{
-				fileName += ".txt";
-			}
-			else
-			{
-				if (fileName.find('txt', dotPos + 1) != dotPos + 1)
-				{
-					fileName += ".txt";
-				}
-			}
-			this->save(fileName);
+			this->saveAs();
 			break;
 		case 3:
 			return;
@@ -519,9 +326,32 @@ void TicketSystem::exit(std::string& fileName, bool fileIsOpen)
 	std::exit(0);
 }
 
+void TicketSystem::saveAs()
+{
+	std::string otherFileName;
+	size_t dotPos = 0;
+	std::cout << "Enter file name." << std::endl;
+	std::cin >> otherFileName;
+	Validations::ValidateFileName(otherFileName);
+	save(otherFileName);
+}
+
 void TicketSystem::addEvent()
 {
-	Date date(cinDate());
+	Date date;
+	std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+	std::cin >> date;
+	try
+	{
+		if (date == Date())
+		{
+			throw std::invalid_argument("Couldn't initialize date.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
 
 	std::cout << "Enter hall number." << std::endl;
 	size_t hallNumber;
@@ -541,7 +371,20 @@ void TicketSystem::addEvent()
 
 void TicketSystem::freeSeats()
 {
-	Date date(cinDate());
+	Date date;
+	std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+	std::cin >> date;
+	try
+	{
+		if (date == Date())
+		{
+			throw std::invalid_argument("Couldn't initialize date.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
 	std::cin.ignore();
 	std::string name;
 	std::cout << "Enter name." << std::endl;
@@ -633,7 +476,20 @@ void TicketSystem::freeSeats()
 
 void TicketSystem::book()
 {
-	Date date(cinDate());
+	Date date;
+	std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+	std::cin >> date;
+	try
+	{
+		if (date == Date())
+		{
+			throw std::invalid_argument("Couldn't initialize date.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
 	std::cin.ignore();
 	std::string name;
 	std::cout << "Enter name." << std::endl;
@@ -702,7 +558,20 @@ void TicketSystem::book()
 
 void TicketSystem::unbook()
 {
-	Date date(cinDate());
+	Date date;
+	std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+	std::cin >> date;
+	try
+	{
+		if (date == Date())
+		{
+			throw std::invalid_argument("Couldn't initialize date.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
 	std::cin.ignore();
 	std::string name;
 	std::cout << "Enter name." << std::endl;
@@ -759,7 +628,20 @@ void TicketSystem::unbook()
 void TicketSystem::buy()
 {
 
-	Date date(cinDate());
+	Date date;
+	std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+	std::cin >> date;
+	try
+	{
+		if (date == Date())
+		{
+			throw std::invalid_argument("Couldn't initialize date.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
 	std::cin.ignore();
 	std::string name;
 	std::cout << "Enter name." << std::endl;
@@ -820,6 +702,7 @@ void TicketSystem::bookings()
 		std::cout << "(3) Search with date and name." << std::endl;
 		std::cin >> option;
 	} while (option < 1 || option > 3);
+
 	Date date;
 	std::string name;
 
@@ -827,7 +710,19 @@ void TicketSystem::bookings()
 	{
 		if (option == 1)
 		{
-			date = cinDate();
+			std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+			std::cin >> date;
+			try
+			{
+				if (date == Date())
+				{
+					throw std::invalid_argument("Couldn't initialize date.");
+				}
+			}
+			catch (const std::exception&)
+			{
+				return;
+			}
 			for (size_t i = 0; i < m_hallCount; i++)
 			{
 				size_t eventCount = m_halls[i].getEventCount();
@@ -887,7 +782,19 @@ void TicketSystem::bookings()
 	}
 	else
 	{
-		date = cinDate();
+		std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+		std::cin >> date;
+		try
+		{
+			if (date == Date())
+			{
+				throw std::invalid_argument("Couldn't initialize date.");
+			}
+		}
+		catch (const std::exception&)
+		{
+			return;
+		}
 		std::cin.ignore();
 		std::cout << "Enter name." << std::endl;
 		std::getline(std::cin, name);
@@ -934,9 +841,35 @@ void TicketSystem::check()
 void TicketSystem::report()
 {
 	std::cout << "From when to start the search?" << std::endl;
-	Date fromDate(cinDate());
+	Date fromDate;
+	std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+	std::cin >> fromDate;
+	try
+	{
+		if (fromDate == Date())
+		{
+			throw std::invalid_argument("Couldn't initialize date.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
 	std::cout << "When to stop the search?" << std::endl;
-	Date toDate(cinDate());
+	Date toDate;
+	std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+	std::cin >> toDate;
+	try
+	{
+		if (toDate == Date())
+		{
+			throw std::invalid_argument("Couldn't initialize date.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
 
 	size_t option = 0;
 	do

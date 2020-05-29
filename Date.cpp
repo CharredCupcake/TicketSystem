@@ -178,8 +178,43 @@ bool Date::operator<=(const Date& other)
 	}
 }
 
+std::istream& operator>>(std::istream& in, Date& date)
+{
+	std::string dateStr;
+	std::string yearStr;
+	std::string monthStr;
+	std::string dayStr;
+	in >> dateStr;
+	try
+	{
+		try
+		{
+			Validations::ValidateDateFormat(dateStr);
+		}
+		catch (const char* message)
+		{
+			std::cerr << message << std::endl;
+			return in;
+		}
+		size_t firstDot = dateStr.find('.');
+		size_t secondDot = dateStr.rfind('.');
+		yearStr = dateStr.substr(0, firstDot);
+		monthStr = dateStr.substr(firstDot + 1, secondDot - firstDot - 1);
+		dayStr = dateStr.substr(secondDot + 1);
+
+		Validations::ValidateDate(yearStr, monthStr, dayStr);
+	}
+	catch (const char* message)
+	{
+		std::cerr << message << std::endl;
+		return in;
+	}
+	date = Date(std::stoul(yearStr), std::stoul(monthStr), std::stoul(dayStr));
+	return in;
+}
+
 std::ostream& operator<<(std::ostream& out, const Date& date)
 {
-	out << date.m_year << '.' << date.m_month << '.' << date.m_day << '\n';
+	out << date.m_year << '.' << date.m_month << '.' << date.m_day << std::endl;
 	return out;
 }

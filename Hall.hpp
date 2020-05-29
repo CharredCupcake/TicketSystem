@@ -28,5 +28,7 @@ public:
 	void pushEvent(const Event& event);
 	size_t findEvent(const Date& date, std::string name);
 
+	friend std::ostream& operator<<(std::ostream& out, const Hall& hall);
+
 };
 

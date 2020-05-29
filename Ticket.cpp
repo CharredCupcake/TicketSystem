@@ -32,3 +32,13 @@ std::string Ticket::getNote()
 {
 	return m_note;
 }
+
+std::ostream& operator<<(std::ostream& out, const Ticket& ticket)
+{
+	out << ticket.m_code << std::endl;
+	if (!ticket.m_note.empty())
+	{
+		out << ticket.m_note << std::endl;
+	}
+	return out;
+}
